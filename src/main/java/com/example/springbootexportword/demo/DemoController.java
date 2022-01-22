@@ -4,6 +4,7 @@ import cn.afterturn.easypoi.excel.ExcelImportUtil;
 import cn.afterturn.easypoi.excel.entity.ImportParams;
 import cn.afterturn.easypoi.word.WordExportUtil;
 import cn.afterturn.easypoi.word.entity.MyXWPFDocument;
+import com.alibaba.excel.EasyExcel;
 import org.apache.commons.io.IOUtils;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.core.io.ClassPathResource;
@@ -64,6 +65,25 @@ public class DemoController {
             outputStream.flush();
         }
     }
+
+    @GetMapping("exportExcel")
+    public void exportExcel(HttpServletResponse response) throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        map.put("test", "Easypoi");
+        Resource resource = new ClassPathResource("templates/EPC常规业务测试表_2G(1).xlsx");
+        try (ServletOutputStream outputStream = response.getOutputStream()) {
+            EasyExcel.write(outputStream).withTemplate(resource.getInputStream()).sheet().doFill(map);
+            //向输出流写文件
+            //写之前设置响应流以附件的形式打开返回值,这样可以保证前边打开文件出错时异常可以返回给前台
+            // 这里注意 有同学反应使用swagger 会导致各种问题，请直接用浏览器或者用postman
+            String fileName = URLEncoder.encode("测试", "UTF-8").replaceAll("\\+", "%20");
+            response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setCharacterEncoding("utf-8");
+            outputStream.flush();
+        }
+    }
+
 
     @PostMapping("import")
     @ResponseBody
